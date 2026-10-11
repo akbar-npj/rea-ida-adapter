@@ -279,9 +279,15 @@ UPSTREAM = Upstream()
 # ---------------------------------------------------------------------------
 
 def _function_obj(fn):
+    address = hex_addr(fn.get("addr", fn.get("address")))
+    name = fn.get("name") or ""
+    if not name:
+        # IDA can return an empty name for unnamed items; REA requires a non-empty
+        # name, so synthesize the conventional IDA placeholder.
+        name = "sub_" + address[2:]
     return {
-        "address": hex_addr(fn.get("addr", fn.get("address"))),
-        "name": fn.get("name", ""),
+        "address": address,
+        "name": name,
         "size": str(fn.get("size", "0")),
     }
 
@@ -452,9 +458,13 @@ def tool_get_callees(args):
     result = UPSTREAM.call_tool("callees", {"addrs": [address], "limit": 500})
     out = []
     for callee in _first_callees(result):
+        address = hex_addr(callee.get("addr", callee.get("address")))
+        name = callee.get("name") or ""
+        if not name:
+            name = "sub_" + address[2:]
         out.append({
-            "address": hex_addr(callee.get("addr", callee.get("address"))),
-            "name": callee.get("name", ""),
+            "address": address,
+            "name": name,
             "type": callee.get("type", "internal"),
         })
     return out
